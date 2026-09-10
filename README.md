@@ -44,7 +44,7 @@ recomendar proveedores con experiencia.
 | ---- | ----------------------------------------------- | ------------- |
 | 0    | Verificación de ChromaDB con documentos prueba  | ✅ Implementado|
 | 1    | Motor RAG sobre pliegos PDF                     | ✅ Implementado|
-| 2    | Tool de datos abiertos (API SECOP II)           | 🔲 Pendiente  |
+| 2    | Tool de datos abiertos (API SECOP II)           | ✅ Implementado|
 | 3    | Agente orquestador con LangChain + NVIDIA       | 🔲 Pendiente  |
 
 ---
@@ -59,6 +59,7 @@ agente_contratacion/
 ├── pyproject.toml           # Dependencias del proyecto
 ├── README.md                # Material para el estudiante
 ├── readme_rag.md            # Documentación técnica del RAG (para el agente de IA)
+├── readme_secop.md          # Documentación técnica de la API SECOP II
 ├── instrucciones.md         # Especificación técnica por fases
 ├── datos/
 │   └── pliegos/             # PDFs descargados manualmente de SECOP II
@@ -71,9 +72,12 @@ agente_contratacion/
     ├── __init__.py
     ├── fase0_smoke_test.py  # ✅ Verificación de ChromaDB
     ├── fase1_rag_engine.py  # Motor RAG sobre pliegos
-    ├── fase2_secop_tools.py # Consumo de API SECOP II
+    ├── fase2_secop_tools.py # ✅ Consumo de API SECOP II
     └── fase3_agent.py       # Agente LangChain + NVIDIA
 ```
+>
+> En `tests/data/secop_consulta_software.csv` hay una consulta real guardada
+> para **mockear** la API en los tests sin volver a llamarla.
 
 ---
 
@@ -94,6 +98,7 @@ copy .env-example .env
 # 3. Ejecutar la fase que corresponda
 .\.venv\Scripts\python src\fase0_smoke_test.py
 .\.venv\Scripts\python src\fase1_rag_engine.py "cuales son las licencias del lote 1" --licitacion IDARTES-SA-SI-013-2026
+.\.venv\Scripts\python src\fase2_secop_tools.py "software" --departamento "Bogotá DC"
 
 # 4. Ejecutar los tests unitarios
 .\.venv\Scripts\python -m pytest
@@ -162,10 +167,22 @@ pregunta. Es **retrieval puro (sin LLM)**: la extracción de datos complejos
 
 ---
 
-## 6. FASE 2 — Datos abiertos SECOP II (por construir)
+## 6. FASE 2 — Datos abiertos SECOP II (implementado)
 
-**Objetivo:** consumir la API SODA de datos.gov.co para encontrar proveedores
-con experiencia en contratación estatal.
+**Objetivo:** consumir la API SODA de datos.gov.co (con el cliente oficial
+`sodapy`) para encontrar proveedores con experiencia en contratación estatal.
+
+```powershell
+# Lista proveedores de 'software' en Bogotá, ordenados por total ejecutado
+.\.venv\Scripts\python src\fase2_secop_tools.py "software" --departamento "Bogotá DC"
+
+# Filtro adicional por categoría UNSPSC (código de categoria principal)
+.\.venv\Scripts\python src\fase2_secop_tools.py "software" --departamento "Bogotá DC" --codigo-unspsc 48101501
+```
+
+Devuelve una tabla Markdown con proveedor, documento, número de contratos y
+total ejecutado (es-CO: `$ 1.234.567`), lista para inyectarla a un LLM (Fase 3
+la envolverá con `@tool`).
 
 ### Ejercicios guiados
 
@@ -173,6 +190,9 @@ con experiencia en contratación estatal.
 2. **Limpieza.** Procesa campos numéricos (`valor_del_contrato`).
 3. **Agrupación.** Calcula total de contratos y suma ejecutada por proveedor.
 4. **Formato.** Retorna en Markdown o JSON para que el LLM lo consuma.
+
+> Documentación técnica (diseño, campos del dataset, estrategia de tests y
+> mock con CSV): ver **`readme_secop.md`**.
 
 ---
 
