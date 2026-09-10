@@ -43,7 +43,7 @@ recomendar proveedores con experiencia.
 | Fase | Qué se construye                                | Estado        |
 | ---- | ----------------------------------------------- | ------------- |
 | 0    | Verificación de ChromaDB con documentos prueba  | ✅ Implementado|
-| 1    | Motor RAG sobre pliegos PDF                     | 🔲 Pendiente  |
+| 1    | Motor RAG sobre pliegos PDF                     | ✅ Implementado|
 | 2    | Tool de datos abiertos (API SECOP II)           | 🔲 Pendiente  |
 | 3    | Agente orquestador con LangChain + NVIDIA       | 🔲 Pendiente  |
 
@@ -86,12 +86,19 @@ agente_contratacion/
 python -m venv .venv
 .\.venv\Scripts\pip install -e .
 
+# 1b. (opcional) Dependencias de desarrollo para correr los tests
+.\.venv\Scripts\pip install -e ".[dev]"
+
 # 2. Crear el archivo .env con tu clave
 copy .env-example .env
 # Edita .env y pon tu clave real
 
 # 3. Ejecutar la fase que corresponda
 .\.venv\Scripts\python src\fase0_smoke_test.py
+.\.venv\Scripts\python src\fase1_rag_engine.py
+
+# 4. Ejecutar los tests unitarios
+.\.venv\Scripts\python -m pytest
 ```
 
 > **Nota:** la primera ejecución de ChromaDB descarga un modelo de embeddings
@@ -141,20 +148,79 @@ Resultados de la consulta:
 
 ---
 
-## 5. FASE 1 — Motor RAG sobre pliegos (por construir)
+## 5. FASE 1 — Motor RAG sobre pliegos (implementado)
 
 **Objetivo:** procesar PDFs de pliegos licitatorios, dividirlos en fragmentos,
-indexarlos en ChromaDB y responder preguntas semánticas.
+indexarlos en ChromaDB y recuperar los fragmentos más relevantes ante una
+pregunta.
 
-### Ejercicios guiados
+> **Nota de diseño:** la Fase 1 es **retrieval puro** (sin LLM). Devuelve los
+> top-k fragmentos con su fuente y página. El razonamiento y la extracción de
+> datos complejos (códigos UNSPSC, ítems, características técnicas) lo hace el
+> LLM de la Fase 3.
 
-1. **Carga de PDFs.** Usa `PyPDFDirectoryLoader` para leer todos los PDFs de
-   `datos/pliegos/`.
-2. **Fragmentación.** Divide con `RecursiveCharacterTextSplitter`
-   (chunk_size=1000, overlap=200). ¿Por qué no enviar el PDF entero?
-3. **Indexación.** Almacena los vectores en `./chroma_db` de forma persistente.
-4. **Consulta.** Recupera los k contextos más relevantes y muestra el texto
-   junto con la fuente.
+### Qué hace
+
+1. **Carga incremental.** Recorre `datos/pliegos/` (recursivo), calcula el hash
+   de cada PDF y solo indexa los **nuevos o modificados**. Descargar un pliego
+   nuevo a la carpeta y volver a ejecutar es suficiente.
+2. **Extracción por página.** Usa `pypdf` para leer cada PDF página por página,
+   normalizando glifos problemáticos (viñetas, comillas tipográficas).
+3. **Fragmentación.** `RecursiveCharacterTextSplitter` (chunk_size=1000,
+   overlap=200) dentro de cada página, para que un fragmento nunca mezcle dos
+   páginas.
+4. **Persistencia.** Los vectores quedan en `chroma_db/` con metadatos:
+   `fuente` (nombre del PDF), `pagina` y `archivo_hash`.
+5. **Consulta.** Retorna top-k fragmentos con texto, fuente, página y distancia.
+
+### Ejecutar
+
+```powershell
+.\.venv\Scripts\python src\fase1_rag_engine.py
+```
+
+Salida esperada al indexar:
+
+```
+  + PLIEGO DE CONDICIONES.pdf (212 chunks)
+  + 09_09_2026.pdf (48 chunks)
+  + 03. Anexo tecnico.pdf.pdf (51 chunks)
+Indexados: 3 | Omitidos: 0 | Reemplazados: 0 | Total chunks: 311
+```
+
+Luego escribe preguntas en la consola:
+
+```
+Pregunta sobre el pliego (q para salir): Que licencias se solicitan para el Lote 2
+
+[1] Fuente: 09_09_2026.pdf | Pagina: 6 | Distancia: 0.2930
+Incluye las siguientes licencias:
+- Genially Master
+- Genially Edu Pro
+- StreamYard
+...
+```
+
+### Tests unitarios
+
+Los tests generan PDFs sintéticos (sin depender de los pliegos reales) y
+verifican: indexación inicial, carga incremental, detección de archivos
+modificados, relevancia semántica, orden por distancia y formato de salida.
+
+```powershell
+.\.venv\Scripts\python -m pytest -v
+```
+
+### Discusión
+
+- **¿Por qué el hash?** Permite saber si un PDF bajado de nuevo reemplaza a uno
+  ya indexado, sin borrar el índice completo.
+- **¿Por qué retrieval puro?** La recuperación responde *"¿dónde está la
+  información?"*; el LLM de la Fase 3 responde *"¿qué significa?"*. Separar las
+  responsabilidades hace cada pieza testeable por su cuenta.
+- **¿Por qué no indexar el PDF completo?** Un pliego puede tener cientos de
+  páginas; la ventana de contexto del LLM es limitada. El retrieval reduce el
+  universo a los fragmentos relevantes.
 
 ---
 
