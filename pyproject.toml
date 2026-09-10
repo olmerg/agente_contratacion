@@ -17,12 +17,6 @@ dependencies = [
     "sentence-transformers>=2.7.0"
 ]
 
-[project.optional-dependencies]
-dev = [
-    "pytest>=8.0",
-    "fpdf2>=2.7"
-]
-
 [project.scripts]
 secop-rag = "src.fase1_rag_engine:main_cli"
 
