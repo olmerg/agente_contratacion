@@ -57,7 +57,6 @@ agente_contratacion/
 ├── .env-example             # Plantilla del .env
 ├── .gitignore
 ├── pyproject.toml           # Dependencias del proyecto
-├── requirements-dev.txt     # Dependencias de desarrollo (tests)
 ├── README.md                # Material para el estudiante
 ├── readme_rag.md            # Documentación técnica del RAG (para el agente de IA)
 ├── instrucciones.md         # Especificación técnica por fases
@@ -88,16 +87,13 @@ agente_contratacion/
 python -m venv .venv
 .\.venv\Scripts\pip install -e .
 
-# 1b. (opcional) Dependencias de desarrollo para correr los tests
-.\.venv\Scripts\pip install -r requirements-dev.txt
-
 # 2. Crear el archivo .env con tu clave
 copy .env-example .env
 # Edita .env y pon tu clave real
 
 # 3. Ejecutar la fase que corresponda
 .\.venv\Scripts\python src\fase0_smoke_test.py
-.\.venv\Scripts\python src\fase1_rag_engine.py
+.\.venv\Scripts\python src\fase1_rag_engine.py "cuales son las licencias del lote 1" --licitacion IDARTES-SA-SI-013-2026
 
 # 4. Ejecutar los tests unitarios
 .\.venv\Scripts\python -m pytest
@@ -157,7 +153,8 @@ pregunta. Es **retrieval puro (sin LLM)**: la extracción de datos complejos
 (códigos UNSPSC, ítems, características técnicas) la hace el LLM de la Fase 3.
 
 ```powershell
-.\.venv\Scripts\python src\fase1_rag_engine.py
+# Si la licitación no está indexada, indexa su carpeta y responde la pregunta
+.\.venv\Scripts\python src\fase1_rag_engine.py "cuales son las licencias del lote 1" --licitacion IDARTES-SA-SI-013-2026
 ```
 
 > Documentación técnica completa (diseño, carga incremental, tests, discusión):
