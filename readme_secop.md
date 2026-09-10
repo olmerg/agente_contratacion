@@ -1,90 +1,69 @@
 # Fase 2 — Datos Abiertos SECOP II (documentación técnica)
 
-Documento de referencia del módulo `src/fase2_secop_tools.py`. Pensado para
-quien mantiene el código (o para el agente de IA que construya la Fase 3 sobre
-esta base). El estudiante no necesita leerlo.
+Referencia de `src/fase2_secop_tools.py` para quien mantiene el código (o para
+el agente de IA que construya la Fase 3). El estudiante no necesita leerlo.
 
 ---
 
 ## 1. Diseño
 
-La Fase 2 es una **herramienta (tool)** que consulta el dataset abierto de
-contratos de SECOP II en datos.gov.co y devuelve, agrupado por proveedor,
-cuántos contratos ganó y cuánto suman. Su salida es **texto Markdown** listo
-para inyectar a un LLM (Fase 3 la envolverá con `@tool`).
+La Fase 2 es una función-tool que consulta el dataset de contratos SECOP II y
+devuelve una **tabla Markdown** de proveedores (contratos ganados + total
+ejecutado) lista para inyectar a un LLM. Como el LLM la va a leer, **no se
+pulen los datos**: se busca simple y claro.
+
+Está pensada para envolverse en Fase 3 con `@tool`.
 
 ```python
 buscar_proveedores_secop(termino_clave, departamento="Bogotá DC", codigo_unspsc=None) -> str
-└── _construir_parametros(...)    # SoQL (filtro de objeto en el servidor)
-└── _consultar_api(parametros)    # HTTP a la API  <-- punto de anclaje de los mocks
-└── _aplicar_filtros(...)         # filtro local (departamento tolerante, UNSPSC)
-└── _agrupar_por_proveedor(...)   # pandas: contratos y total ejecutado por proveedor
-└── _formatear_markdown(...)      # tabla Markdown ordenada por total (es-CO)
 ```
 
-## 2. La API real
+## 2. La librería: `sodapy`
 
-- **Endpoint:** `https://www.datos.gov.co/resource/jbjy-vk9h.json` (dataset
-  SECOP II, [datos.gov.co](https://www.datos.gov.co), columna de formatos en
-  SODA). El export `.csv` del mismo dataset es el de los fixtures.
-- **Sintaxis y hallazgos verificados:**
-  - Los filtros **implícitos** de SODA (`?objeto_del_contrato=LIKE '%x%'`)
-    **no devuelven nada** en este dataset; hay que usar **`$where`**:
-    `objeto_del_contrato like '%x%'`.
-  - El departamento en el dataset es **"Distrito Capital de Bogotá"**, no
-    "Bogotá DC". Por eso el departamento **no se filtra en el servidor**, sino
-    en local con normalización (quitar acentos, minúsculas) y coincidencia por
-    token significativo: `"Bogotá DC"` == `"Distrito Capital de Bogotá"`.
-  - La cláusula `$where` se limita a **100 filas** (`$limit`) para que las
-    llamadas sean ligeras y la consulta no se bloquee.
+Se usa el **cliente oficial** de la API SODA (la API de datos.gov.co):
 
-## 3. Campos usados del dataset
+```python
+from sodapy import Socrata
 
-| Campo en el código | Campo en el dataset          |
-| ------------------ | ---------------------------- |
-| `CAMPO_OBJETO`     | `objeto_del_contrato`        |
-| `CAMPO_DEPARTAMENTO`| `departamento`              |
-| `CAMPO_VALOR`      | `valor_del_contrato`         |
-| `CAMPO_PROVEEDOR`  | `proveedor_adjudicado`       |
-| `CAMPO_DOCUMENTO`  | `documento_proveedor`        |
-| `CAMPO_UNSPSC`     | `codigo_de_categoria_principal` |
+cliente = Socrata("www.datos.gov.co", None)          # None = dataset público
+filas = cliente.get(
+    "jbjy-vk9h",
+    where="objeto_del_contrato like '%software%'",
+    limit=100,
+)                                                   # -> list[dict] (JSON)
+```
 
-### Limpieza de montos
+No hay HTTP manual: sodapy construye la URL, los parámetros SoQL y maneja los
+errores. **Hallazgo verificado:** en este dataset los filtros implícitos
+(`?objeto_del_contrato=LIKE '%x%'`) devuelven vacío; hay que usar **`where`**
+(SoQL `$where`). El dep. en el dataset es "Distrito Capital de Bogotá": se
+filtra local con la primera palabra del departamento pedido
+(`str.contains("Bogotá")`) — suficiente para una tool del LLM.
 
-`valor_del_contrato` llega como **string** (en el CSV a veces sin separadores).
-`_limpiar_valor` tolera: `"1.234.567"`, `"1,234,567.89"`, `"$ 5.000"`, `"NaN"`,
-`None`. La regla para el punto como millar (es-CO): solo cuando hay **un** punto
-con **3 dígitos** después; si no, es decimal.
+## 3. Limpieza mínima
 
-### Agrupación
+| Paso | Código |
+| ---- | ------ |
+| Montos | `pd.to_numeric(..., errors="coerce").fillna(0)` |
+| Departamento | `df[df["departamento"].str.contains(primera_palabra, case=False)]` |
+| Agrupar | `groupby(["proveedor_adjudicado", "documento_proveedor"])` → `count` + `sum` |
+| Ordenar | por total ejecutado descendente |
+| Formato | `"$ " + f"{int(total):,}".replace(",", ".")` (es-CO) |
 
-`_agrupar_por_proveedor` usa `pandas` (`groupby` por proveedor + documento):
-`contratos` = número de filas (cada fila es un contrato), `total_ejecutado` =
-suma de `valor_del_contrato` limpio. Se ordena por total descendente.
-
-## 4. Fixture CSV para mockear la API
-
-Se autoriza **una sola** descarga real de la API por consulta, para no saturar
-ni exponernos a bloqueos. Esa respuesta se guarda en
-`tests/data/secop_consulta_software.csv` (445 filas reales del export `.csv` de
-la consulta `objeto like '%software%'`, `$limit=100`).
-
-- Los **unit tests** `monkeypatch` a `_consultar_api` (el único punto que toca
-  la red) para que lea el CSV; así la suite normal corre **sin llamadas HTTP**.
-- La **prueba de integración** es exactamente **una** llamada real a la API y
-  está marcada `integracion`; se ejecuta aparte (`pytest -m integracion`) y se
-  omite automáticamente si la API está caída.
-
-## 5. Tests
+## 4. Tests
 
 ```
 tests/
-├── test_fase2_secop_tools.py            # unit tests (mock del CSV), rápidos
-├── data/
-│   └── secop_consulta_software.csv      # fixture real (consulta descargada una vez)
-└── integration/
-    └── test_fase2_secop_integracion.py  # una llamada real a la API
+├── test_fase2_secop_tools.py            # unit, sin red
+├── data/secop_consulta_software.csv     # consulta real 'software' (445 filas)
+└── integration/test_fase2_secop_integracion.py   # 1 llamada real
 ```
 
-`.\.venv\Scripts\python -m pytest -q`          # sin red (usa el CSV)
-`.\.venv\Scripts\python -m pytest -m integracion -q`   # Fases 1 y 2 reales
+- Los **unit tests** reemplazan `Socrata` por un **cliente falso** que devuelve
+  las filas del CSV fixture (`tests/data/secop_consulta_software.csv`,
+  descargado **una sola vez** de la API). Correrlos no toca la red.
+- El **test de integración** hace **una única** llamada real y está marcado
+  `integracion` (se ejecuta aparte y se salta si la API falla).
+
+`.\.venv\Scripts\python -m pytest -q`                  # sin red (mock del CSV)
+`.\.venv\Scripts\python -m pytest -m integracion -q`   # Fases 1 y 2 con API/BD reales

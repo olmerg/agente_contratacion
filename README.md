@@ -169,8 +169,8 @@ pregunta. Es **retrieval puro (sin LLM)**: la extracción de datos complejos
 
 ## 6. FASE 2 — Datos abiertos SECOP II (implementado)
 
-**Objetivo:** consumir la API SODA de datos.gov.co para encontrar proveedores
-con experiencia en contratación estatal.
+**Objetivo:** consumir la API SODA de datos.gov.co (con el cliente oficial
+`sodapy`) para encontrar proveedores con experiencia en contratación estatal.
 
 ```powershell
 # Lista proveedores de 'software' en Bogotá, ordenados por total ejecutado
