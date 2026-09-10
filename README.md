@@ -43,7 +43,7 @@ recomendar proveedores con experiencia.
 | Fase | Qué se construye                                | Estado        |
 | ---- | ----------------------------------------------- | ------------- |
 | 0    | Verificación de ChromaDB con documentos prueba  | ✅ Implementado|
-| 1    | Motor RAG sobre pliegos PDF                     | 🔲 Pendiente  |
+| 1    | Motor RAG sobre pliegos PDF                     | ✅ Implementado|
 | 2    | Tool de datos abiertos (API SECOP II)           | 🔲 Pendiente  |
 | 3    | Agente orquestador con LangChain + NVIDIA       | 🔲 Pendiente  |
 
@@ -57,7 +57,8 @@ agente_contratacion/
 ├── .env-example             # Plantilla del .env
 ├── .gitignore
 ├── pyproject.toml           # Dependencias del proyecto
-├── README.md                # Este archivo
+├── README.md                # Material para el estudiante
+├── readme_rag.md            # Documentación técnica del RAG (para el agente de IA)
 ├── instrucciones.md         # Especificación técnica por fases
 ├── datos/
 │   └── pliegos/             # PDFs descargados manualmente de SECOP II
@@ -92,6 +93,10 @@ copy .env-example .env
 
 # 3. Ejecutar la fase que corresponda
 .\.venv\Scripts\python src\fase0_smoke_test.py
+.\.venv\Scripts\python src\fase1_rag_engine.py "cuales son las licencias del lote 1" --licitacion IDARTES-SA-SI-013-2026
+
+# 4. Ejecutar los tests unitarios
+.\.venv\Scripts\python -m pytest
 ```
 
 > **Nota:** la primera ejecución de ChromaDB descarga un modelo de embeddings
@@ -141,20 +146,19 @@ Resultados de la consulta:
 
 ---
 
-## 5. FASE 1 — Motor RAG sobre pliegos (por construir)
+## 5. FASE 1 — Motor RAG sobre pliegos (implementado)
 
-**Objetivo:** procesar PDFs de pliegos licitatorios, dividirlos en fragmentos,
-indexarlos en ChromaDB y responder preguntas semánticas.
+Recupera de ChromaDB los fragmentos más relevantes de los pliegos ante una
+pregunta. Es **retrieval puro (sin LLM)**: la extracción de datos complejos
+(códigos UNSPSC, ítems, características técnicas) la hace el LLM de la Fase 3.
 
-### Ejercicios guiados
+```powershell
+# Si la licitación no está indexada, indexa su carpeta y responde la pregunta
+.\.venv\Scripts\python src\fase1_rag_engine.py "cuales son las licencias del lote 1" --licitacion IDARTES-SA-SI-013-2026
+```
 
-1. **Carga de PDFs.** Usa `PyPDFDirectoryLoader` para leer todos los PDFs de
-   `datos/pliegos/`.
-2. **Fragmentación.** Divide con `RecursiveCharacterTextSplitter`
-   (chunk_size=1000, overlap=200). ¿Por qué no enviar el PDF entero?
-3. **Indexación.** Almacena los vectores en `./chroma_db` de forma persistente.
-4. **Consulta.** Recupera los k contextos más relevantes y muestra el texto
-   junto con la fuente.
+> Documentación técnica completa (diseño, carga incremental, tests, discusión):
+> ver **`readme_rag.md`**.
 
 ---
 
