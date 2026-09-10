@@ -1,14 +1,17 @@
-"""Fase 0: Smoke Test - Verificar ChromaDB funcional."""
+"""Fase 0: Smoke Test - Verificar ChromaDB funcional con embeddings multilingües."""
 
 import chromadb
+from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
+
+EMBEDDING_MODEL = "paraphrase-multilingual-MiniLM-L12-v2"
 
 
 def main():
-    # Cliente efímero (en memoria)
+    ef = SentenceTransformerEmbeddingFunction(model_name=EMBEDDING_MODEL)
+
     client = chromadb.Client()
 
-    # Crear colección
-    collection = client.create_collection("prueba_pliegos")
+    collection = client.create_collection("prueba_pliegos", embedding_function=ef)
 
     # Insertar 2 documentos de prueba
     collection.add(
@@ -38,7 +41,7 @@ def main():
         print(f"  {i+1}. [{fuente}] (distancia: {distancia:.4f})")
         print(f"     {doc[:100]}...")
 
-    print("\n✅ Smoke test completado exitosamente")
+    print("\n[OK] Smoke test completado exitosamente")
 
 
 if __name__ == "__main__":
