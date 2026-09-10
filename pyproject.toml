@@ -1,0 +1,24 @@
+[project]
+name = "secop-ai-agent"
+version = "0.1.0"
+description = "Agente de IA para Inteligencia de Mercado en Contratación Estatal Colombiana"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "chromadb>=0.4.24",
+    "langchain>=0.2.0",
+    "langchain-community>=0.2.0",
+    "langchain-nvidia-ai-endpoints>=0.1.0",
+    "pypdf>=4.0.0",
+    "pandas>=2.0.0",
+    "requests>=2.31.0",
+    "python-dotenv>=1.0.0",
+    "sentence-transformers>=2.7.0"
+]
+
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["src*"]

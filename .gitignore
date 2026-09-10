@@ -1,0 +1,16 @@
+# Entorno virtual
+.venv/
+
+# Archivos de configuración con secretos
+.env
+
+# Registros y archivos temporales
+*.log
+__pycache__/
+*.pyc
+
+# ChromaDB (base de datos vectorial persistente)
+chroma_db/
+
+# Build
+*.egg-info/
