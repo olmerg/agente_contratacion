@@ -49,7 +49,8 @@ class PliegoRAG:
         )
 
     def esta_indexada(self) -> bool:
-        return self.vectorstore._collection.count() > 0
+        # MEJORA: se usa la API pública de Chroma en lugar de _collection (API privada)
+        return len(self.vectorstore.get()["ids"]) > 0
 
     def indexar(self, carpeta_pdfs: str) -> dict:
         """Reconstruye la base de la licitación desde los PDFs de carpeta_pdfs.
@@ -74,9 +75,11 @@ class PliegoRAG:
         )
         chunks = splitter.split_documents(documentos)
 
-        ids_actuales = self.vectorstore._collection.get()["ids"]
+        # MEJORA: aviso visible cuando se sobreescribe una base ya poblada
+        ids_actuales = self.vectorstore.get()["ids"]
         if ids_actuales:
-            self.vectorstore._collection.delete(ids=ids_actuales)
+            print(f"[AVISO] Sobreescribiendo {len(ids_actuales)} chunks de '{self.licitacion}'")
+            self.vectorstore.delete(ids=ids_actuales)
         self.vectorstore.add_documents(chunks)
 
         return {"pdfs": len(pdfs), "chunks": len(chunks)}

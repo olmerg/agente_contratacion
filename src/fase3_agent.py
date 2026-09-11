@@ -27,10 +27,12 @@ RECURSION_LIMIT = 12
 def _registrar_perfil_modelo() -> None:
     """Registra el modelo en el catalogo estatico del paquete langchain-nvidia.
 
-    Evita los warnings de "type unknown" y "not known to support tools" y deja
-    que el paquete sepa que soporta tool calling.
+    Por que existe: modelos recientes de NVIDIA Build API tardan en aparecer
+    en el catalogo empaquetado de langchain-nvidia-ai-endpoints. Sin este
+    registro, el paquete lanza warnings de 'type unknown' y 'not known to
+    support tools', lo que puede bloquear el tool calling. Si en el futuro
+    el modelo ya esta en el catalogo, esta funcion es un no-op inofensivo.
     """
-
     MODEL_TABLE[MODELO] = Model(
         id=MODELO,
         model_type="chat",
@@ -134,6 +136,8 @@ def main_cli() -> None:
 
     agente = crear_agente()
 
+    # Modo una-pregunta: sin try/except — si algo falla, el traceback completo
+    # es mas util que un mensaje generico (fail-fast)
     if args.pregunta:
         print(responder(agente, args.pregunta))
         return
@@ -153,7 +157,10 @@ def main_cli() -> None:
         try:
             print(responder(agente, pregunta))
         except Exception as e:
-            print(f"Error procesando la pregunta: {e}")
+            # MEJORA: se muestra el tipo del error ademas del mensaje para
+            # facilitar el diagnostico sin ocultar el problema detras de un
+            # mensaje generico
+            print(f"[{type(e).__name__}] {e}")
 
 
 if __name__ == "__main__":
