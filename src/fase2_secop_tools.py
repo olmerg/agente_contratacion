@@ -5,11 +5,20 @@ devuelve, como tabla Markdown, los proveedores con contratos sobre un termino.
 La salida la va a leer un LLM (Fase 3), asi que no pulimos los datos.
 """
 
+import os
+
 import pandas as pd
 from sodapy import Socrata
 
 DOMINIO = "www.datos.gov.co"
 DATASET_ID = "jbjy-vk9h"
+
+
+def _cliente_soda() -> Socrata:
+    """Cliente de datos.gov.co. Con SECOP_APP_TOKEN (opcional) saltan los
+    limites de trafico; sin el token sodapy avisa por logging, sin quebrar."""
+
+    return Socrata(DOMINIO, None, app_token=os.getenv("SECOP_APP_TOKEN"))
 
 
 def buscar_proveedores_secop(
@@ -19,7 +28,7 @@ def buscar_proveedores_secop(
 ) -> str:
     """Busca proveedores en SECOP II y devuelve una tabla Markdown."""
 
-    cliente = Socrata(DOMINIO, None)
+    cliente = _cliente_soda()
 
     where = f"objeto_del_contrato like '%{termino_clave}%'"
     if codigo_unspsc:
@@ -60,6 +69,9 @@ def buscar_proveedores_secop(
 def main_cli() -> None:
     import argparse
 
+    from dotenv import load_dotenv
+
+    load_dotenv()
     parser = argparse.ArgumentParser(
         description="Consulta proveedores en la API SECOP II (datos.gov.co)"
     )
