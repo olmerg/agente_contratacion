@@ -191,3 +191,4 @@ Las mejoras siguen tres principios:
 
 5. **Trampa pedagógica útil:** borrar la carpeta `chroma_db/` entre sesiones
    para que el estudiante observe la re-indexación y entienda la persistencia.
+
