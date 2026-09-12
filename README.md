@@ -45,7 +45,7 @@ recomendar proveedores con experiencia.
 | 0    | Verificación de ChromaDB con documentos prueba  | ✅ Implementado|
 | 1    | Motor RAG sobre pliegos PDF                     | ✅ Implementado|
 | 2    | Tool de datos abiertos (API SECOP II)           | ✅ Implementado|
-| 3    | Agente orquestador con LangChain + NVIDIA       | 🔲 Pendiente  |
+| 3    | Agente orquestador con LangChain + NVIDIA       | ✅ Implementado|
 
 ---
 
@@ -72,7 +72,7 @@ agente_contratacion/
     ├── __init__.py
     ├── fase0_smoke_test.py  # ✅ Verificación de ChromaDB
     ├── fase1_rag_engine.py  # Motor RAG sobre pliegos
-    ├── fase2_secop_tools.py # ✅ Consumo de API SECOP II
+    ├── fase2_secop_tools.py # Consumo de API SECOP II
     └── fase3_agent.py       # Agente LangChain + NVIDIA
 ```
 >
@@ -100,7 +100,11 @@ copy .env-example .env
 .\.venv\Scripts\python src\fase1_rag_engine.py "cuales son las licencias del lote 1" --licitacion IDARTES-SA-SI-013-2026
 .\.venv\Scripts\python src\fase2_secop_tools.py "software" --departamento "Bogotá DC"
 
-# 4. Ejecutar los tests unitarios
+# 4. Ejecutar el agente (Fase 3) - interactivo o con una pregunta
+.\.venv\Scripts\python -m src.fase3_agent
+.\.venv\Scripts\python -m src.fase3_agent "que licencias pide el Lote 2 del pliego IDARTES-SA-SI-013-2026?"
+
+# 5. Ejecutar los tests unitarios (los de integracion son optativos: -m integracion)
 .\.venv\Scripts\python -m pytest
 ```
 
@@ -196,18 +200,42 @@ la envolverá con `@tool`).
 
 ---
 
-## 7. FASE 3 — Agente orquestador (por construir)
+## 7. FASE 3 — Agente orquestador (implementado)
 
 **Objetivo:** integrar RAG + datos abiertos en un agente LangChain propulsado
-por NVIDIA Build API.
+por NVIDIA Build API. Se construye con `create_agent()` (la API recomendada de
+LangChain 1.x, que arma un grafo de LangGraph por debajo), dos `@tool` y memoria
+conversacional.
 
 ### El flujo del agente
 
 1. El usuario hace una pregunta sobre la licitación.
-2. El agente consulta `tool_rag_pliegos` para leer el pliego.
-3. Con la información extraída, consulta `tool_secop_proveedores` en datos
-   abiertos.
-4. Responde de forma estructurada en español.
+2. El agente consulta `tool_rag_pliegos` para leer el pliego (Fase 1).
+3. Con las palabras clave o códigos UNSPSC identificados, consulta
+   `tool_secop_proveedores` en datos abiertos (Fase 2).
+4. Responde de forma estructurada en español, citando fuente y página.
+
+```powershell
+# Modo interactivo (mantiene la conversación en sesión)
+.\.venv\Scripts\python -m src.fase3_agent
+
+# Una sola pregunta (modo uno-disparo)
+.\.venv\Scripts\python -m src.fase3_agent "que licencias pide el Lote 2 del pliego IDARTES-SA-SI-013-2026?"
+
+# Equivalentes instalados como comandos tras `pip install -e .`
+secop-agent
+```
+
+El modelo se configura según su model card NVIDIA: se registra su perfil (tool
+calling + soporte de thinking) y se desactiva el *reasoning* con
+`chat_template_kwargs: {"enable_thinking": false}` para respuestas rápidas y
+deterministas (`temperature=0`). Si tu clave de NVIDIA tiene otro modelo, cambia
+`MODELO` en `src/fase3_agent.py`. Los tests de integración lanzan el agente por
+**línea de comandos** (subproceso), tal como se usará en producción:
+`pytest -m integracion tests\integration\test_fase3_agent_integracion.py`.
+
+> **Nota:** sin `SECOP_APP_TOKEN` (opcional en `.env`) sodapy avisa que aplicará
+> límites de tráfico a datos.gov.co; es un aviso, no un error.
 
 ---
 

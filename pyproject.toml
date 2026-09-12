@@ -11,6 +11,7 @@ dependencies = [
     "langchain-chroma>=0.1.0",
     "langchain-text-splitters>=0.2.0",
     "langchain-nvidia-ai-endpoints>=0.1.0",
+    "langgraph>=1.0.0",
     "pypdf>=4.0.0",
     "pandas>=2.0.0",
     "requests>=2.31.0",
@@ -23,6 +24,7 @@ dependencies = [
 
 [project.scripts]
 secop-rag = "src.fase1_rag_engine:main_cli"
+secop-agent = "src.fase3_agent:main_cli"
 
 [build-system]
 requires = ["setuptools>=68.0", "wheel"]

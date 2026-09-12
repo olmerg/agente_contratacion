@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agente Inteligente de Contratación Estatal (SECOP II) — Del Taller a Producción</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #0f172a; color: #e2e8f0; }
+  .slide { min-height: 100vh; padding: 50px 70px; display: flex; flex-direction: column; justify-content: center; position: relative; }
+  .slide:nth-child(odd) { background: #0f172a; }
+  .slide:nth-child(even) { background: #1e293b; }
+  h1 { font-size: 2.7em; margin-bottom: 16px; color: #38bdf8; line-height: 1.2; }
+  h2 { font-size: 2em; margin-bottom: 24px; color: #7dd3fc; }
+  h3 { font-size: 1.3em; margin: 18px 0 10px; color: #94a3b8; }
+  h4 { font-size: 1.1em; margin: 10px 0 6px; }
+  p, li { font-size: 1.15em; line-height: 1.7; color: #cbd5e1; }
+  ul { padding-left: 28px; }
+  li { margin-bottom: 8px; }
+  .highlight { color: #fbbf24; font-weight: bold; }
+  .problem { color: #f87171; font-weight: 600; }
+  .solution { color: #4ade80; font-weight: 600; }
+  .warning { color: #f59e0b; font-weight: 600; }
+  code { background: #334155; padding: 2px 7px; border-radius: 4px; font-size: 0.9em; color: #e2e8f0; font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; }
+  .code-block { background: #0b1120; border: 1px solid #334155; border-radius: 8px; padding: 18px 22px; margin: 14px 0; font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; font-size: 0.92em; line-height: 1.6; overflow-x: auto; white-space: pre; }
+  .code-block .comment { color: #64748b; font-style: italic; }
+  .code-block .keyword { color: #c084fc; font-weight: bold; }
+  .code-block .string { color: #4ade80; }
+  .code-block .func { color: #38bdf8; }
+  .code-block .error { color: #f87171; }
+  .code-block .number { color: #f59e0b; }
+  table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+  th { background: #334155; color: #7dd3fc; padding: 12px 16px; text-align: left; font-size: 1.05em; }
+  td { padding: 12px 16px; border-bottom: 1px solid #334155; font-size: 1em; }
+  tr:hover td { background: #243247; }
+  .diagram { text-align: center; font-family: 'Cascadia Code', monospace; font-size: 1.1em; line-height: 2; color: #94a3b8; margin: 24px 0; }
+  .diagram .box { display: inline-block; border: 2px solid #38bdf8; padding: 8px 16px; margin: 4px; border-radius: 8px; background: rgba(56, 189, 248, 0.05); }
+  .diagram .arrow-r { color: #fbbf24; margin: 0 8px; font-weight: bold; }
+  .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.85em; font-weight: bold; margin: 2px; }
+  .badge-green { background: #166534; color: #4ade80; }
+  .badge-red { background: #7f1d1d; color: #fca5a5; }
+  .badge-yellow { background: #713f12; color: #fde047; }
+  .badge-blue { background: #1e3a5f; color: #7dd3fc; }
+  .badge-purple { background: #4c1d95; color: #c084fc; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 18px 0; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin: 18px 0; }
+  .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; }
+  .slide:nth-child(even) .card { background: #0f172a; border-color: #334155; }
+  .card h3 { margin-top: 0; font-size: 1.25em; }
+  .quote { border-left: 4px solid #38bdf8; padding: 14px 22px; margin: 18px 0; background: rgba(56, 189, 248, 0.08); border-radius: 0 8px 8px 0; font-style: italic; font-size: 1.15em; }
+  .page-num { position: fixed; bottom: 20px; right: 30px; color: #64748b; font-size: 0.9em; font-family: monospace; z-index: 100; background: rgba(15, 23, 42, 0.8); padding: 4px 10px; border-radius: 6px; }
+  .nav-hint { position: fixed; bottom: 20px; left: 30px; color: #475569; font-size: 0.85em; font-family: monospace; z-index: 100; }
+  @media print { .slide { page-break-after: always; min-height: auto; padding: 40px; } .page-num, .nav-hint { display: none; } }
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1: PORTADA GENERAL -->
+<div class="slide">
+  <h1>Agente Inteligente de Contratación Estatal (SECOP II)</h1>
+  <p style="font-size:1.45em; color:#94a3b8; margin-top:10px;">
+    Análisis de pliegos licitatorios con RAG y recomendación de proveedores con Datos Abiertos
+  </p>
+  <div style="margin-top:40px;">
+    <span class="badge badge-blue">Módulo IR: Embeddings & ChromaDB</span>
+    <span class="badge badge-purple">Fases 0 a 3: Taller Hands-On</span>
+    <span class="badge badge-red">Fase P: Arquitectura Cloud</span>
+  </div>
+  <div class="quote" style="margin-top:35px;">
+    "Un agente de inteligencia artificial no es solo un prompt: es un sistema de ingeniería que coordina
+    recuperación determinista de documentos, consumo seguro de APIs estructuradas y toma de decisiones probabilística."
+  </div>
+  <p style="font-size:1em; color:#64748b; margin-top:20px;">
+    Web & Text Analytics, Universidad Jorge Tadeo Lozano
+  </p>
+</div>
+
+<!-- SLIDE 2: MÓDULO TEÓRICO - PORTADA INFORMATION RETRIEVAL CON EMBEDDINGS & LLM -->
+<div class="slide">
+  <h1>Information Retrieval con Embeddings & LLM</h1>
+  <p style="font-size:1.45em; color:#94a3b8; margin-top:10px;">
+    Del emparejamiento léxico tradicional (TF-IDF / BM25) al espacio semántico vectorial y RAG
+  </p>
+  <div style="margin-top:40px;">
+    <span class="badge badge-blue">TF-IDF / BM25 (Léxico)</span>
+    <span class="badge badge-yellow">Dense Embeddings (Semántico)</span>
+    <span class="badge badge-purple">RAG (Retrieval + Generación)</span>
+    <span class="badge badge-green">ChromaDB (Vector Engine)</span>
+  </div>
+  <div class="quote" style="margin-top:35px;">
+    "En la clase 2 construimos motores de búsqueda léxica con TF-IDF, matrices término-documento e índices invertidos.
+    Hoy damos el salto cualitativo: ¿qué pasa cuando el ciudadano o proveedor no utiliza exactamente las mismas palabras que redactó la entidad pública en el pliego de condiciones?"
+  </div>
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="card">
+      <h3 class="problem">El Límite del Modelo Léxico</h3>
+      <p>TF-IDF premia la coincidencia exacta de tokens. Si el pliego dice <em>«adquisición de soluciones ofimáticas»</em> y la consulta es <em>«licencias de software de oficina»</em>, el producto punto léxico es <strong>cero</strong>. Hay un abismo de vocabulario.</p>
+    </div>
+    <div class="card">
+      <h3 class="solution">La Promesa del Modelo Denso</h3>
+      <p>Los modelos basados en Transformers proyectan el lenguaje a espacios métricos continuos de dimensión fija (<em>d</em> = 384, 768). La relevancia deja de ser un conteo superficial de palabras y se convierte en <strong>proximidad geométrica en un hiperespacio</strong>.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 3: DE TF-IDF A DENSE RETRIEVAL -->
+<div class="slide">
+  <h2>De la Búsqueda Léxica (TF-IDF) a la Búsqueda Densa (Dense Retrieval)</h2>
+  <div class="grid-2">
+    <div>
+      <h3>Comparativa de Fundamentos Matemáticos</h3>
+      <table>
+        <tr>
+          <th>Criterio</th>
+          <th>TF-IDF / BM25 (Sparse)</th>
+          <th>Dense Embeddings (Bi-Encoders)</th>
+        </tr>
+        <tr>
+          <td><strong>Vector</strong></td>
+          <td>Disperso: dimensión |<em>V</em>| &sim; 50.000 (casi todos ceros)</td>
+          <td>Denso: dimensión fija <em>d</em> &in; [384, 1536] (valores continuos)</td>
+        </tr>
+        <tr>
+          <td><strong>Sinonimia</strong></td>
+          <td><span class="problem">Ortogonalidad estricta</span> (<em>u</em> &middot; <em>v</em> = 0)</td>
+          <td><span class="solution">Proximidad semántica</span> (cos(&theta;) &approx; 1.0)</td>
+        </tr>
+        <tr>
+          <td><strong>Contexto</strong></td>
+          <td>Bolsa de palabras; ignora orden sintáctico</td>
+          <td>Atención contextual; comprende negaciones y matices</td>
+        </tr>
+        <tr>
+          <td><strong>Indexación</strong></td>
+          <td>Inverted Index (Posting Lists)</td>
+          <td>Grafo de vecinos más cercanos aproximados (HNSW)</td>
+        </tr>
+      </table>
+    </div>
+    <div>
+      <h3>Demostración en Contratación Estatal</h3>
+      <div class="code-block">
+<span class="comment"># Caso Real: Dos textos con exactamente el mismo sentido legal</span>
+doc   = <span class="string">"Suministro de programas ofimáticos y suites de productividad"</span>
+query = <span class="string">"Compra de licencias de software para oficina"</span>
+
+<span class="comment"># 1. Enfoque Léxico (TF-IDF / BM25):</span>
+<span class="comment"># Tokens compartidos = 0 -> Similitud léxica = 0.0</span>
+<span class="error">Resultado: Documento descartado (Falso Negativo crítico)</span>
+
+<span class="comment"># 2. Enfoque Denso (Sentence Transformers / MiniLM-L12):</span>
+v_doc   = model.<span class="func">encode</span>(doc)    <span class="comment"># Vector continuo float32[384]</span>
+v_query = model.<span class="func">encode</span>(query)  <span class="comment"># Vector continuo float32[384]</span>
+score   = <span class="func">cosine_similarity</span>(v_doc, v_query)
+<span class="comment"># Score = 0.8412 -> ¡Top 1 de relevancia semántica!</span>
+<span class="solution">Resultado: Requisito técnico encontrado exitosamente</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 4: ¿POR QUÉ RAG? -->
+<div class="slide">
+  <h2>¿Por qué RAG? Superando los Límites Paramétricos del LLM</h2>
+  <div class="diagram">
+    <span class="box">Pregunta Ciudadana<br><small>"¿Qué póliza exige el pliego?"</small></span>
+    <span class="arrow-r">&rarr;</span>
+    <span class="box" style="border-color:#38bdf8;">Retrieval (Dense Search)<br><small>Top-3 chunks del PDF en ChromaDB</small></span>
+    <span class="arrow-r">&rarr;</span>
+    <span class="box" style="border-color:#fbbf24;">Context Augmentation<br><small>Inyección en System Prompt</small></span>
+    <span class="arrow-r">&rarr;</span>
+    <span class="box" style="border-color:#4ade80;">LLM Generation<br><small>Respuesta citando pág. 45</small></span>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>Memoria Paramétrica vs. No Paramétrica</h3>
+      <ul style="margin-top:10px;">
+        <li><span class="problem">Memoria Paramétrica (Pesos del LLM):</span> Estática, congelada en la fecha de corte del modelo. No conoce la licitación publicada ayer en SECOP II. Alucina plazos y leyes inventadas si no sabe la respuesta.</li>
+        <li><span class="solution">Memoria No Paramétrica (Base Vectorial Externa):</span> Dinámica, actualizable en segundos sin reentrenamiento, privada, auditable y con trazabilidad exacta a la fuente.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>¿Por qué no meter todo el PDF en el Context Window?</h3>
+      <ul style="margin-top:10px;">
+        <li><span class="problem">Efecto "Lost in the Middle":</span> En documentos de 200+ páginas (100k+ tokens), la atención del Transformer se degrada severamente en el centro del texto.</li>
+        <li><span class="problem">Costo y Latencia:</span> Pasar 150 páginas en cada turno de conversación eleva el costo financiero y genera latencias de 20 a 40 segundos por respuesta.</li>
+        <li><span class="solution">Principio RAG:</span> Recuperar únicamente los <em>k</em> fragmentos más densamente relevantes (<em>k</em> = 3), reduciendo el contexto a menos de 1.500 tokens.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 5: BASES DE DATOS VECTORIALES & CHROMADB -->
+<div class="slide">
+  <h2>Bases de Datos Vectoriales: ¿Por qué ChromaDB?</h2>
+  <div class="grid-3">
+    <div class="card">
+      <h3 class="highlight">1. El Problema de Escala en IR</h3>
+      <p>En una base relacional tradicional (SQL), buscar los vectores más cercanos a una consulta requiere un cálculo de distancia euclidiana o coseno fila por fila: <strong><em>O</em>(<em>N</em> &middot; <em>D</em>)</strong>.</p>
+      <p style="margin-top:8px;">Con miles de pliegos y millones de chunks, una búsqueda lineal (KNN exacto) es prohibitiva en tiempo real. Se requiere <strong>ANN (Approximate Nearest Neighbors)</strong>.</p>
+    </div>
+
+    <div class="card">
+      <h3 class="solution">2. El Algoritmo HNSW</h3>
+      <p><strong>Hierarchical Navigable Small World:</strong> el estándar de oro en indexación vectorial.</p>
+      <p style="margin-top:8px;">Construye un grafo multicapa (similar a una <em>Skip List</em> multidimensional). La capa superior da "saltos largos" en el hiperespacio, y las capas inferiores refinan la búsqueda localmente. Complejidad de consulta: <strong><em>O</em>(log <em>N</em>)</strong>.</p>
+    </div>
+
+    <div class="card">
+      <h3 class="badge-blue" style="display:block; text-align:center; padding:8px; border-radius:8px; margin-bottom:10px;">3. Arquitectura ChromaDB</h3>
+      <p>Motor vectorial open-source diseñado para IA y desarrollo ágil:</p>
+      <ul style="font-size:0.95em; margin-top:8px;">
+        <li><strong>Colecciones:</strong> Espacios vectoriales aislados (multi-tenancy por licitación).</li>
+        <li><strong>Embedding Functions desacopladas:</strong> Permite pasar texto crudo o vectores precalculados.</li>
+        <li><strong>Almacenamiento híbrido:</strong> SQLite para metadatos + biblioteca <code>hnswlib</code> en C++ para índices vectoriales.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="quote" style="margin-top:20px;">
+    "ChromaDB abstrae la matemática pesada de indexación HNSW detrás de una API simple de tres verbos: <code>add()</code>, <code>query()</code> y <code>delete()</code>."
+  </div>
+</div>
+
+<!-- SLIDE 6: ANATOMÍA DE CHROMADB -->
+<div class="slide">
+  <h2>Anatomía de ChromaDB: Ciclo de Vida y Métricas de Distancia</h2>
+  <div class="grid-2">
+    <div>
+      <h3>Las Dos Fases Operativas</h3>
+      <div class="code-block">
+<span class="comment"># 1. INDEX TIME (Carga e Ingesta del Pliego)</span>
+collection = client.<span class="func">get_or_create_collection</span>(
+    name=<span class="string">"IDARTES-2026"</span>,
+    metadata={<span class="string">"hnsw:space"</span>: <span class="string">"cosine"</span>}  <span class="comment"># Espacio métrico</span>
+)
+collection.<span class="func">add</span>(
+    documents=[chunk_1, chunk_2, ...],
+    metadatas=[{<span class="string">"fuente"</span>: <span class="string">"pliego.pdf"</span>, <span class="string">"page"</span>: <span class="number">12</span>}, ...],
+    ids=[<span class="string">"c1"</span>, <span class="string">"c2"</span>, ...]
+)
+
+<span class="comment"># 2. QUERY TIME (Recuperación Semántica)</span>
+results = collection.<span class="func">query</span>(
+    query_texts=[<span class="string">"licencias de diseño gráfico"</span>],
+    n_results=<span class="number">3</span>,
+    where={<span class="string">"page"</span>: {<span class="string">"$gt"</span>: <span class="number">5</span>}}  <span class="comment"># ¡Filtrado híbrido con metadatos!</span>
+)
+      </div>
+    </div>
+
+    <div>
+      <h3>Métricas de Distancia en el Hiperespacio</h3>
+      <div class="card" style="margin-bottom:12px;">
+        <h4 style="color:#38bdf8;">Coseno (Angular) — Recomendada para Texto</h4>
+        <p style="font-size:0.95em;"><em>d</em><sub>cos</sub>(<em>u</em>, <em>v</em>) = 1 &minus; (<em>u</em> &middot; <em>v</em>) / (||<em>u</em>||<sub>2</sub> ||<em>v</em>||<sub>2</sub>). Mide el ángulo entre vectores. Es invariante a la longitud del fragmento de texto (compara orientación temática pura).</p>
+      </div>
+      <div class="card" style="margin-bottom:12px;">
+        <h4 style="color:#4ade80;">Distancia Euclidiana L2</h4>
+        <p style="font-size:0.95em;"><em>d</em><sub>L2</sub>(<em>u</em>, <em>v</em>) = ||<em>u</em> &minus; <em>v</em>||<sub>2</sub>. Mide la distancia geométrica directa en línea recta. Cuando los embeddings están normalizados (||<em>u</em>||<sub>2</sub> = 1), L2 es monótona y directamente equivalente al Coseno.</p>
+      </div>
+      <div class="card">
+        <h4 style="color:#fbbf24;">Producto Punto Interno (IP)</h4>
+        <p style="font-size:0.95em;"><em>d</em><sub>IP</sub>(<em>u</em>, <em>v</em>) = 1 &minus; (<em>u</em> &middot; <em>v</em>). La métrica más rápida de calcular a nivel de hardware cuando todos los vectores están previamente normalizados.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 7: MAPA DEL TALLER Y ARQUITECTURA GENERAL -->
+<div class="slide">
+  <h2>Arquitectura General y Flujo de Decisión</h2>
+  <div class="diagram">
+    <span class="box">Usuario / Pregunta<br><small>"¿Qué licencias pide el Lote 2 y qué proveedores contratar?"</small></span>
+    <span class="arrow-r">&rarr;</span>
+    <span class="box" style="border-color:#4ade80;">Agente Orquestador<br><small>LangChain + ChatNVIDIA (Nemotron)</small></span>
+    <span class="arrow-r">&harr;</span>
+    <span class="box" style="border-color:#38bdf8;">tool_rag_pliegos<br><small>ChromaDB + PyPDF</small></span>
+    <br>
+    <span style="visibility:hidden;">espacio</span>
+    <span class="arrow-r" style="transform: rotate(90deg); display:inline-block; margin: 8px 0;">&darr;</span>
+    <br>
+    <span class="box" style="border-color:#fbbf24;">tool_secop_proveedores<br><small>API SODA datos.gov.co (SoQL)</small></span>
+    <span class="arrow-r">&rarr;</span>
+    <span class="box" style="border-color:#c084fc;">Respuesta Estructurada<br><small>Cita de fuentes, páginas y tabla de contratos</small></span>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>El Desafío Central</h3>
+      <p>Unir <strong>datos no estructurados</strong> (pliegos de 200 páginas en PDF con requisitos técnicos) con <strong>datos tabulares públicos</strong> (millones de contratos en SECOP II) de manera precisa, sin alucinación y con trazabilidad jurídica.</p>
+    </div>
+    <div class="card">
+      <h3>Metodología Pedagógica: Fallar Rápido</h3>
+      <p>Construcción modular incremental. Cada fase se aísla, tiene su propio CLI ejecutable en una línea y falla inmediatamente si falta una dependencia o variable de entorno, <em>sin software fusible que enmascare errores</em>.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 8: FASE 0 -->
+<div class="slide">
+  <h2>Fase 0 — Smoke Test: Fundamentos Vectoriales</h2>
+  <div class="grid-2">
+    <div>
+      <h3>Objetivo Didáctico</h3>
+      <p>Verificar que el entorno vectorial está correctamente configurado en local antes de tocar un solo PDF o llamar un modelo generativo.</p>
+      <ul style="margin-top:14px;">
+        <li><span class="highlight">ChromaDB efímero:</span> Operaciones en memoria para validar la instalación sin efectos secundarios en disco.</li>
+        <li><span class="highlight">Embeddings multilingües:</span> Uso de <code>paraphrase-multilingual-MiniLM-L12-v2</code> optimizado para español técnico institucional.</li>
+        <li><span class="highlight">Distancia semántica:</span> Comprobación de que la distancia L2/coseno correlaciona con la similitud de conceptos (licencias vs pliego).</li>
+      </ul>
+    </div>
+    <div>
+      <div class="code-block">
+<span class="comment"># fase0_smoke_test.py — Verificación en 40 líneas</span>
+ef = <span class="func">SentenceTransformerEmbeddingFunction</span>(
+    model_name=<span class="string">"paraphrase-multilingual-MiniLM-L12-v2"</span>
+)
+client = chromadb.<span class="func">Client</span>()  <span class="comment"># En memoria</span>
+col = client.<span class="func">create_collection</span>(<span class="string">"prueba"</span>, embedding_function=ef)
+
+col.<span class="func">add</span>(
+    documents=[<span class="string">"Pliego condiciones técnicas software"</span>, ...],
+    metadatas=[{<span class="string">"fuente"</span>: <span class="string">"pliego_001.pdf"</span>}],
+    ids=[<span class="string">"d1"</span>, <span class="string">"d2"</span>]
+)
+res = col.<span class="func">query</span>(query_texts=[<span class="string">"licencias"</span>], n_results=<span class="number">2</span>)
+<span class="comment"># Salida: distancia semántica calculada en milisegundos</span>
+      </div>
+      <div class="card" style="margin-top:10px;">
+        <p><span class="solution">✓ Concepto clave:</span> Una búsqueda vectorial no busca palabras exactas; proyecta texto en un espacio métrico continuo de 384 dimensiones.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 9: FASE 1 -->
+<div class="slide">
+  <h2>Fase 1 — Motor RAG sobre Pliegos (Retrieval Puro)</h2>
+  <div class="grid-2">
+    <div>
+      <h3>Diseño & Decisiones de Ingeniería</h3>
+      <ul>
+        <li><strong>Sin LLM en el loop:</strong> Fase 1 es <em>retrieval determinista</em>. No genera texto; recupera fragmentos con citas exactas (página, fuente, score).</li>
+        <li><strong>Aislamiento por proceso:</strong> Cada licitación tiene su propia colección vectorial persistente en <code>chroma_db/&lt;licitacion&gt;/</code>. Previene contaminación cruzada de pliegos.</li>
+        <li><strong>Chunking consciente:</strong> <code>RecursiveCharacterTextSplitter</code> (1000 caracteres, 200 de solape) preserva párrafos legales y listas técnicas.</li>
+        <li><strong>Carga trazable:</strong> <code>PyPDFLoader</code> extrae página por página, almacenando <code>metadata["page"]</code> para auditoría posterior.</li>
+      </ul>
+      <div class="quote" style="margin-top:16px;">
+        "Si el retrieval falla o alucina en la Fase 1, ningún LLM avanzado en la Fase 3 podrá salvar la respuesta."
+      </div>
+    </div>
+    <div>
+      <div class="code-block">
+<span class="keyword">class</span> <span class="func">PliegoRAG</span>:
+    <span class="keyword">def</span> <span class="func">__init__</span>(self, licitacion: str):
+        self.vectorstore = Chroma(
+            collection_name=licitacion,
+            persist_directory=f<span class="string">"chroma_db/{licitacion}"</span>,
+            embedding_function=adaptador_embeddings
+        )
+
+    <span class="keyword">def</span> <span class="func">esta_indexada</span>(self) -> bool:
+        <span class="comment"># API pública sin depender de _collection interna</span>
+        <span class="keyword">return</span> len(self.vectorstore.get()[<span class="string">"ids"</span>]) > <span class="number">0</span>
+
+    <span class="keyword">def</span> <span class="func">consultar_pliego</span>(self, query: str, k=<span class="number">3</span>) -> list[dict]:
+        <span class="keyword">return</span> self.vectorstore.<span class="func">similarity_search_with_score</span>(
+            query, k=k
+        )
+      </div>
+      <p style="font-size:0.95em; color:#94a3b8;">CLI de verificación: <code>python src/fase1_rag_engine.py "licencias lote 2" --licitacion IDARTES-SA-SI-013-2026</code></p>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 10: FASE 2 -->
+<div class="slide">
+  <h2>Fase 2 — Tooling de Datos Abiertos (API SECOP II)</h2>
+  <div class="grid-2">
+    <div>
+      <h3>De la API SODA al Conocimiento Tabular</h3>
+      <p>Consumo del dataset <code>jbjy-vk9h</code> en <code>datos.gov.co</code> mediante cliente oficial <code>sodapy</code>.</p>
+      <ul style="margin-top:12px;">
+        <li><span class="highlight">Filtro SoQL:</span> Cláusulas <code>where</code> eficientes por <code>objeto_del_contrato</code> y <code>codigo_de_categoria_principal</code> (UNSPSC).</li>
+        <li><span class="highlight">Normalización con Pandas:</span> Conversión segura de <code>valor_del_contrato</code> a punto flotante (manejando nulos y texto sucio).</li>
+        <li><span class="highlight">Agregación analítica:</span> Agrupación por NIT y Razón Social; cálculo de contratos adjudicados y total ejecutado.</li>
+        <li><span class="highlight">Salida para LLM:</span> Generación directa de tabla Markdown con formato de moneda colombiana (<code>$ 1.234.567</code>).</li>
+      </ul>
+    </div>
+    <div>
+      <div class="code-block">
+<span class="comment"># fase2_secop_tools.py — Consulta y agregación</span>
+termino_seguro = termino_clave.replace(<span class="string">"'"</span>, <span class="string">""</span>)
+where = f<span class="string">"objeto_del_contrato like '%{termino_seguro}%'"</span>
+<span class="keyword">if</span> unspsc:
+    where += f<span class="string">" and codigo_de_categoria_principal = '{unspsc}'"</span>
+
+filas = cliente.<span class="func">get</span>(<span class="string">"jbjy-vk9h"</span>, where=where, limit=<span class="number">100</span>)
+df = pd.<span class="func">DataFrame</span>(filas)
+resumen = (
+    df.groupby([<span class="string">"proveedor_adjudicado"</span>, <span class="string">"documento_proveedor"</span>])[<span class="string">"valor"</span>]
+    .agg(contratos=<span class="string">"count"</span>, total_ejecutado=<span class="string">"sum"</span>)
+    .sort_values(<span class="string">"total_ejecutado"</span>, ascending=<span class="keyword">False</span>)
+)
+      </div>
+      <div class="card" style="margin-top:10px;">
+        <p><span class="warning">Discusión de seguridad:</span> Interpolación directa en SoQL vs Inyección. La sanitización de comillas previene ruptura de queries.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 11: FASE 3 -->
+<div class="slide">
+  <h2>Fase 3 — Agente Orquestador (LangChain 1.x + NVIDIA)</h2>
+  <div class="grid-2">
+    <div>
+      <h3>Orquestación con Tool Calling Autónomo</h3>
+      <p>Construcción mediante <code>create_agent</code> (LangGraph runtime) con dos herramientas declaradas con decorador <code>@tool</code>:</p>
+      <ul style="margin-top:12px;">
+        <li><code>tool_rag_pliegos(licitacion, pregunta)</code>: Lee requisitos técnicos.</li>
+        <li><code>tool_secop_proveedores(termino, depto, unspsc)</code>: Consulta mercado.</li>
+      </ul>
+      <h3 style="margin-top:20px;">Control de Inferencia & Resiliencia:</h3>
+      <ul>
+        <li><span class="solution">Thinking Mode Desactivado:</span> <code>enable_thinking: False</code> en Nemotron evita monólogos de razonamiento largos y garantiza latencias &lt; 5s.</li>
+        <li><span class="solution">Límite de Recursión:</span> <code>RECURSION_LIMIT = 12</code> evita loops infinitos en casos de herramientas ambiguas.</li>
+        <li><span class="solution">Memoria de Sesión:</span> <code>MemorySaver</code> con <code>thread_id</code> para mantener contexto multi-turno.</li>
+      </ul>
+    </div>
+    <div>
+      <div class="code-block">
+@tool
+<span class="keyword">def</span> <span class="func">tool_rag_pliegos</span>(licitacion: str, pregunta: str) -> str:
+    <span class="string">"""Consulta condiciones y lotes de un pliego PDF."""</span>
+    rag = PliegoRAG(licitacion)
+    <span class="keyword">if not</span> rag.esta_indexada(): rag.indexar(...)
+    <span class="keyword">return</span> formatear_resultados(rag.consultar_pliego(pregunta))
+
+llm = <span class="func">ChatNVIDIA</span>(
+    model=<span class="string">"nvidia/nemotron-3.5-lightning-30b-a3b"</span>,
+    temperature=<span class="number">0</span>,
+    model_kwargs={<span class="string">"chat_template_kwargs"</span>: {<span class="string">"enable_thinking"</span>: <span class="keyword">False</span>}}
+)
+agente = <span class="func">create_agent</span>(
+    model=llm,
+    tools=[tool_rag_pliegos, tool_secop_proveedores],
+    system_prompt=<span class="string">"Eres consultor experto en contratación..."</span>,
+    checkpointer=MemorySaver()
+)
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 12: PRODUCCIÓN 1 -->
+<div class="slide">
+  <h2>Producción I — Arquitectura Cloud & Ingestión Escalable</h2>
+  <div class="diagram">
+    <span class="box">Cliente Web / App<br><small>Streaming SSE / WebSockets</small></span>
+    <span class="arrow-r">&rarr;</span>
+    <span class="box" style="border-color:#38bdf8;">API Gateway (FastAPI)<br><small>Auth JWT &middot; Rate Limiting &middot; Validation</small></span>
+    <span class="arrow-r">&rarr;</span>
+    <span class="box" style="border-color:#4ade80;">LangGraph Runtime<br><small>Workers distribuidos / Ray Serve</small></span>
+    <br>
+    <span class="box" style="border-color:#f59e0b;">S3 / GCS Storage<br><small>PDFs originales + hash SHA256</small></span>
+    <span class="arrow-r">&rarr;</span>
+    <span class="box" style="border-color:#c084fc;">Worker Ingesta (Celery)<br><small>Docling / Unstructured + OCR</small></span>
+    <span class="arrow-r">&rarr;</span>
+    <span class="box" style="border-color:#38bdf8;">Vector DB Distribuida<br><small>PgVector / Qdrant / Milvus (HNSW)</small></span>
+  </div>
+
+  <div class="grid-3">
+    <div class="card">
+      <h3 class="problem">Brecha del Laboratorio</h3>
+      <p>ChromaDB en SQLite local no soporta concurrencia, reinicia en cada pod y no escala a gigabytes de pliegos.</p>
+      <p style="margin-top:8px;"><span class="solution">Solución Cloud:</span> Base vectorial administrada con índices HNSW, sharding y particionado multi-tenant nativo.</p>
+    </div>
+    <div class="card">
+      <h3 class="problem">Bloqueo de Ingestión</h3>
+      <p>Indexar 300 páginas de PDFs durante una petición HTTP congela el proceso por 90 segundos.</p>
+      <p style="margin-top:8px;"><span class="solution">Solución Cloud:</span> Ingesta asíncrona con cola de mensajes (Celery/Cloud Tasks), workers dedicados y webhooks de notificación.</p>
+    </div>
+    <div class="card">
+      <h3 class="problem">PDFs Escaneados y Tablas</h3>
+      <p>PyPDFLoader pierde tablas complejas, anexos presupuestales y páginas escaneadas sin texto digital.</p>
+      <p style="margin-top:8px;"><span class="solution">Solución Cloud:</span> Pipeline con Docling/Unstructured, extracción de tablas Markdown y OCR en fallback (Tesseract/Surya).</p>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 13: PRODUCCIÓN 2 -->
+<div class="slide">
+  <h2>Producción II — Resiliencia, Guardrails & Evaluación Continua</h2>
+  <div class="grid-2">
+    <div>
+      <h3>La Tríada de Evaluación RAG (LLM-as-a-Judge)</h3>
+      <p>En contratación estatal una respuesta incorrecta implica riesgo jurídico. Se debe medir automáticamente con <code>Ragas</code> o <code>DeepEval</code> en CI/CD:</p>
+      <table style="margin-top:14px;">
+        <tr>
+          <th>Dimensión</th>
+          <th>Qué mide</th>
+          <th>Objetivo Prod</th>
+        </tr>
+        <tr>
+          <td><span class="highlight">Faithfulness</span></td>
+          <td>¿La respuesta se sustenta 100% en el pliego?</td>
+          <td>&gt; 0.95 (cero alucinación)</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">Answer Relevance</span></td>
+          <td>¿Responde directamente la duda del usuario?</td>
+          <td>&gt; 0.90</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">Context Recall</span></td>
+          <td>¿El RAG recuperó todos los lotes/requisitos?</td>
+          <td>&gt; 0.92</td>
+        </tr>
+      </table>
+    </div>
+
+    <div>
+      <h3>Guardrails & Robustez Operativa</h3>
+      <div class="card" style="margin-bottom:12px;">
+        <h3 class="solution">🛡️ Sanitización Estricta de Queries SoQL</h3>
+        <p>Prohibir concatenación cruda. Usar parámetros validados con Pydantic y listas blancas de departamentos y códigos UNSPSC.</p>
+      </div>
+      <div class="card" style="margin-bottom:12px;">
+        <h3 class="solution">⚡ Caché en Dos Niveles (Redis)</h3>
+        <p>Caché TTL (6 horas) sobre la API de SECOP II. Evita rate limits de datos.gov.co y reduce la latencia de 3.2s a 15ms en consultas repetidas.</p>
+      </div>
+      <div class="card">
+        <h3 class="solution">🔄 Fallback de Modelos (Circuit Breaker)</h3>
+        <p>Si la API de NVIDIA tiene timeout o error 429, conmutar automáticamente a Azure OpenAI o endpoint vLLM self-hosted.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 14: PRODUCCIÓN 3 -->
+<div class="slide">
+  <h2>Producción III — Observabilidad, FinOps & Cumplimiento</h2>
+  <div class="grid-3">
+    <div class="card">
+      <h3>1. Observabilidad (LangSmith / OTel)</h3>
+      <p>Trazabilidad total de cada ejecución:</p>
+      <ul style="margin-top:10px; font-size:0.95em;">
+        <li>Latencia por nodo (RAG vs LLM vs API SODA).</li>
+        <li>Captura de tool calls fallidos o parámetros mal formados.</li>
+        <li>Monitoreo de drift semántico en las preguntas ciudadanas.</li>
+        <li>Alarmas P99 ante degradación de la API de datos abiertos.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>2. FinOps & Arquitectura Jerárquica</h3>
+      <p>Optimización drástica de costos de cómputo:</p>
+      <ul style="margin-top:10px; font-size:0.95em;">
+        <li><strong>Small Language Models (SLM 8B):</strong> Enrutamiento rápido y extracción de entidades (UNSPSC, lotes).</li>
+        <li><strong>Large LLM (70B / Nemotron):</strong> Síntesis final con contexto consolidado.</li>
+        <li><strong>Caché Semántico (GPTCache):</strong> Respuestas precalculadas ante preguntas idénticas de proponentes.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>3. Cumplimiento Legal (Ley 1581)</h3>
+      <p>Gobernanza de datos de contratación pública:</p>
+      <ul style="margin-top:10px; font-size:0.95em;">
+        <li><strong>Anonimización de PII:</strong> Enmascaramiento de cédulas de representantes de personas naturales antes de enviar al LLM externo.</li>
+        <li><strong>Trazabilidad Legal:</strong> Cita obligatoria con hash criptográfico del PDF y número de página verificable.</li>
+        <li><strong>Gestión de Secretos:</strong> Vault o AWS KMS; rotación automática de tokens API.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="quote" style="margin-top:20px;">
+    "En producción, la observabilidad no es un añadido opcional: es el único mecanismo para auditar por qué un agente recomendó a un proveedor específico ante una licitación millonaria."
+  </div>
+</div>
+
+<!-- SLIDE 15: CONCLUSIONES Y RETO DE POSTGRADO -->
+<div class="slide">
+  <h2>Conclusiones: Principios de Ingeniería para el Postgrado</h2>
+  <table>
+    <tr>
+      <th>Dimensión</th>
+      <th>Laboratorio Académico (Taller)</th>
+      <th>Sistema en Producción Real</th>
+    </tr>
+    <tr>
+      <td><strong>Almacenamiento Vectorial</strong></td>
+      <td>ChromaDB local (SQLite en carpeta)</td>
+      <td>Qdrant / PgVector clúster con alta disponibilidad y réplicas</td>
+    </tr>
+    <tr>
+      <td><strong>Ejecución RAG</strong></td>
+      <td>Síncrona en proceso Python local</td>
+      <td>Pipeline asíncrono con colas Celery y parsing con OCR</td>
+    </tr>
+    <tr>
+      <td><strong>Consumo de API Externa</strong></td>
+      <td>Llamada directa sin autenticación</td>
+      <td>Pool con token, circuit breaker y caché Redis de 6 horas</td>
+    </tr>
+    <tr>
+      <td><strong>Gestión del Estado</strong></td>
+      <td><code>MemorySaver</code> (memoria RAM del proceso)</td>
+      <td><code>PostgresSaver</code> persistente con threads multi-usuario</td>
+    </tr>
+    <tr>
+      <td><strong>Garantía de Calidad</strong></td>
+      <td>Pruebas manuales en consola</td>
+      <td>Suite CI/CD con métricas de Ragas (Faithfulness &gt; 0.95)</td>
+    </tr>
+  </table>
+
+  <div class="grid-2" style="margin-top:24px;">
+    <div class="card">
+      <h3 class="solution">Regla de Oro del Ingeniero de IA</h3>
+      <p><em>"Construir un prototipo que funcione una vez en consola toma una tarde; construir un agente robusto, auditable, seguro y económicamente viable toma meses de arquitectura."</em></p>
+    </div>
+    <div class="card">
+      <h3 class="highlight">Reto Propuesto para la Clase</h3>
+      <p>Implementar un guardrail en <code>tool_secop_proveedores</code> que valide con Pydantic que el código UNSPSC exista en el estándar de Colombia Compra Eficiente antes de llamar a la API SODA.</p>
+    </div>
+  </div>
+</div>
+
+<div class="page-num" id="pageNum">1 / 15</div>
+<div class="nav-hint">Usa &uarr; / &darr; o Espacio para navegar</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const pageNum = document.getElementById('pageNum');
+
+  function updatePage() {
+    const scrollPos = window.scrollY + (window.innerHeight / 3);
+    slides.forEach((slide, idx) => {
+      const top = slide.offsetTop;
+      const height = slide.offsetHeight;
+      if (scrollPos >= top && scrollPos < top + height) {
+        pageNum.textContent = `${idx + 1} / ${slides.length}`;
+      }
+    });
+  }
+
+  window.addEventListener('scroll', updatePage, { passive: true });
+
+  document.addEventListener('keydown', (e) => {
+    const current = Math.round(window.scrollY / window.innerHeight);
+    if (e.key === 'ArrowDown' || e.key === ' ') {
+      e.preventDefault();
+      if (current < slides.length - 1) {
+        slides[current + 1].scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (current > 0) {
+        slides[current - 1].scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  });
+
+  updatePage();
+</script>
+</body>
+</html>
