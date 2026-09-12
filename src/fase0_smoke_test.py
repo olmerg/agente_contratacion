@@ -7,6 +7,7 @@ EMBEDDING_MODEL = "paraphrase-multilingual-MiniLM-L12-v2"
 
 
 def main():
+    print("cargando embeddings multilingües...")
     ef = SentenceTransformerEmbeddingFunction(model_name=EMBEDDING_MODEL)
 
     client = chromadb.Client()
@@ -17,13 +18,15 @@ def main():
     collection.add(
         documents=[
             "El presente pliego establece las condiciones técnicas para la contratación de licencias de software",
-            "Los lotes incluyen soporte técnico, mantenimiento preventivo y actualizaciones de seguridad"
+            "Los lotes incluyen soporte técnico, mantenimiento preventivo y actualizaciones de seguridad",
+            "Word es parte de la suite de Microsoft Office y requiere una licencia válida para su uso"
         ],
         metadatas=[
             {"fuente": "pliego_001.pdf", "seccion": "condiciones_tecnicas"},
-            {"fuente": "pliego_002.pdf", "seccion": "soporte"}
+            {"fuente": "pliego_002.pdf", "seccion": "soporte"},
+            {"fuente": "pliego_003.pdf", "seccion": "software"}
         ],
-        ids=["doc1", "doc2"]
+        ids=["doc1", "doc2", "doc3"]
     )
 
     print(f"Documentos insertados: {collection.count()}")
@@ -31,7 +34,7 @@ def main():
     # Consulta de prueba
     resultados = collection.query(
         query_texts=["licencias de software"],
-        n_results=2
+        n_results=3
     )
 
     print("\nResultados de la consulta:")

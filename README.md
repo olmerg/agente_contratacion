@@ -40,12 +40,12 @@ recomendar proveedores con experiencia.
 └─────────────────────────────────────────────────┘
 ```
 
-| Fase | Qué se construye                                | Estado        |
-| ---- | ----------------------------------------------- | ------------- |
-| 0    | Verificación de ChromaDB con documentos prueba  | ✅ Implementado|
-| 1    | Motor RAG sobre pliegos PDF                     | 🔲 Pendiente  |
-| 2    | Tool de datos abiertos (API SECOP II)           | 🔲 Pendiente  |
-| 3    | Agente orquestador con LangChain + NVIDIA       | 🔲 Pendiente  |
+| Fase | Qué se construye                               | Estado          |
+| ---- | ----------------------------------------------- | --------------- |
+| 0    | Verificación de ChromaDB con documentos prueba | ✅ Implementado |
+| 1    | Motor RAG sobre pliegos PDF                     | 🔲 Pendiente    |
+| 2    | Tool de datos abiertos (API SECOP II)           | 🔲 Pendiente    |
+| 3    | Agente orquestador con LangChain + NVIDIA       | 🔲 Pendiente    |
 
 > **Filosofía del taller:** cada fase debe fallar rápido y con un mensaje
 > claro si algo falta. Si el código "funciona" pero da resultados vacíos o
