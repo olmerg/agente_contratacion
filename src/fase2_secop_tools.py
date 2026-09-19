@@ -66,6 +66,12 @@ def buscar_proveedores_secop(
     if resumen.empty:
         return f"No se encontraron contratos con '{termino_clave}' en {departamento}."
 
+    # Se limita a los proveedores con mayor valor ejecutado; una tabla larga
+    # infla el contexto de la llamada final del LLM y le hace degenerar en
+    # texto repetitivo (finish_reason='length' con salida basura).
+    total_proveedores = len(resumen)
+    resumen = resumen.head(10)
+
     tabla = "| # | Proveedor | Documento | Contratos | Total ejecutado |\n|---|---|---|---|---|\n"
     for i, fila in resumen.iterrows():
         total = "$ " + f"{int(fila['total_ejecutado']):,}".replace(",", ".")
@@ -73,7 +79,10 @@ def buscar_proveedores_secop(
             f"| {i + 1} | {fila['proveedor_adjudicado']} | {fila['documento_proveedor']} "
             f"| {fila['contratos']} | {total} |\n"
         )
-    return f"Proveedores con experiencia en '{termino_clave}' en {departamento}:\n\n{tabla}"
+    return (
+        f"Proveedores con experiencia en '{termino_clave}' en {departamento} "
+        f"(top 10 de {total_proveedores} por total ejecutado):\n\n{tabla}"
+    )
 
 
 def main_cli() -> None:

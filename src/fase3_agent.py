@@ -101,7 +101,12 @@ def crear_agente():
     _registrar_perfil_modelo()
     llm = ChatNVIDIA(
         model=MODELO,
-        temperature=0,
+        # La model card de NVIDIA recomienda temperature=1.0, top_p=0.95 para
+        # este modelo; con temperature=0 (greedy) no hay forma de escapar un
+        # bucle de repeticion una vez que empieza (lo que causaba la salida
+        # basura con finish_reason='length').
+        temperature=1.0,
+        top_p=0.95,
         max_completion_tokens=2048,
         timeout=600,
         # El modelo razona por defecto; se apaga el thinking con el flag de su
