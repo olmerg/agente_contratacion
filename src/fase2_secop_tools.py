@@ -17,8 +17,10 @@ DATASET_ID = "jbjy-vk9h"
 def _cliente_soda() -> Socrata:
     """Cliente de datos.gov.co. Con SECOP_APP_TOKEN (opcional) saltan los
     limites de trafico; sin el token sodapy avisa por logging, sin quebrar."""
-
-    return Socrata(DOMINIO, None, app_token=os.getenv("SECOP_APP_TOKEN"))
+    app_token=os.getenv("SECOP_APP_TOKEN")
+    if not app_token:
+        return Socrata(DOMINIO, None,timeout=60)
+    return Socrata(DOMINIO, None, app_token=os.getenv("SECOP_APP_TOKEN"),timeout=60)
 
 
 def buscar_proveedores_secop(
