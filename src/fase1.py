@@ -21,7 +21,8 @@ class EmbeddingFunction:
         return self.ef(texts)
     def embed_query(self, text)->list:
         return self.ef([text])[0]
-    
+
+
 class PliegoRAG:
     def __init__(self, licitacion:str, chroma_dir: str ="chroma_db"):
         self.licitacion = licitacion
