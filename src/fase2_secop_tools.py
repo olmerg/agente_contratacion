@@ -19,8 +19,8 @@ def _cliente_soda() -> Socrata:
     limites de trafico; sin el token sodapy avisa por logging, sin quebrar."""
     app_token=os.getenv("SECOP_APP_TOKEN")
     if not app_token:
-        return Socrata(DOMINIO, None,timeout=60)
-    return Socrata(DOMINIO, None, app_token=os.getenv("SECOP_APP_TOKEN"),timeout=60)
+        return Socrata(DOMINIO, None,timeout=120)
+    return Socrata(DOMINIO, None, app_token=os.getenv("SECOP_APP_TOKEN"),timeout=120)
 
 
 def buscar_proveedores_secop(
@@ -32,11 +32,19 @@ def buscar_proveedores_secop(
 
     cliente = _cliente_soda()
 
-    where = f"objeto_del_contrato like '%{termino_clave}%'"
-    if codigo_unspsc:
-        where += f" and codigo_de_categoria_principal = '{codigo_unspsc}'"
+    def _consultar(termino: str) -> list:
+        where = f"objeto_del_contrato like '%{termino}%'"
+        if codigo_unspsc:
+            where += f" and codigo_de_categoria_principal = '{codigo_unspsc}'"
+        return cliente.get(DATASET_ID, where=where, limit=100)
 
-    filas = cliente.get(DATASET_ID, where=where, limit=100)
+    filas = _consultar(termino_clave)
+    # Frases de varias palabras casi nunca aparecen literales en el objeto
+    # del contrato; si no hay resultados, se reintenta solo con la primera
+    # palabra significativa en vez de devolver vacio.
+    if not filas and " " in termino_clave.strip():
+        primera_palabra_clave = termino_clave.strip().split()[0]
+        filas = _consultar(primera_palabra_clave)
 
     df = pd.DataFrame(filas)
     if df.empty:
