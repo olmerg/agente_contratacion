@@ -16,10 +16,11 @@ def buscar_proveedores_secop(
     termino_clave: str,
     departamento: str = "Bogotá DC",
     codigo_unspsc: str | None = None,
+    timeout: int = 60,
 ) -> str:
     """Busca proveedores en SECOP II y devuelve una tabla Markdown."""
 
-    cliente = Socrata(DOMINIO, None)
+    cliente = Socrata(DOMINIO, None, timeout=timeout)
 
     where = f"objeto_del_contrato like '%{termino_clave}%'"
     if codigo_unspsc:
